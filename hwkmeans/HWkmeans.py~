@@ -133,5 +133,4 @@ plt.plot( centroids[:,0],centroids[:,1], 's',color='c',markersize=15)
 ax = plt.gca()
 ax.set_xlabel("X")
 ax.set_ylabel("Y")
-
 plt.show()
