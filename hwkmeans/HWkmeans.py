@@ -10,6 +10,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from sklearn.cluster import KMeans
 ##########################################################################FUNCTIONS##############################################################
+##########################################################################FUNCTIONS#########
+#plot cluster
 def plotcluster(data,labels,symbols,colors,sizemarker):
   i=0
 
@@ -67,6 +69,16 @@ def bisectkmeans(data,k):
   kmeans = KMeans(n_clusters=bisection_k, random_state=0).fit(data)
   centroids = kmeans.cluster_centers_
   labels = kmeans.labels_
+  figurenumber=1
+  plt.figure(figurenumber)
+  figurenumber=figurenumber+1
+  #plot clusters
+  symbols = ['o','s','v']
+  colors = ['k','b','r']
+  markersize = 10
+  plotcluster(data,labels,symbols,colors,markersize)
+  plt.plot( centroids[:,0],centroids[:,1], '*',color='c',markersize=20)
+
 
   #create centroids with same length as k
   centroids_out = np.zeros((k,2))
@@ -81,14 +93,22 @@ def bisectkmeans(data,k):
       data = getcluster(data,labels,0)
       centroids_out[bisection_k-2,:] = centroids[1,:] #safe centroid that is not being used in next iteration
     else:
-      data = getcluster(data,labels,0)
+      data = getcluster(data,labels,1)
       centroids_out[bisection_k-2,:] = centroids[0,:] #safe centroid that is not being used in next iteration
     
     #Kmeans algorith
     kmeans = KMeans(n_clusters=bisection_k, random_state=0).fit(data)
     centroids = kmeans.cluster_centers_
     labels = kmeans.labels_
-
+    plt.figure(figurenumber)
+    figurenumber=figurenumber+1
+    #plot clusters
+    symbols = ['o','s','v']
+    colors = ['k','b','r']
+    markersize = 10
+    plotcluster(data,labels,symbols,colors,markersize)
+    plt.plot( centroids[:,0],centroids[:,1], '*',color='c',markersize=20)
+    
     #calculate SSE for next iteration
     SSEs = SSEclusters(data,centroids,labels) 
     bisection_k=bisection_k+1
@@ -98,6 +118,8 @@ def bisectkmeans(data,k):
       centroids_out[bisection_k-1,:] = centroids[1,:]
 
   return centroids_out#,labels,inertia,SSEs  
+
+#####################################################################END FUNCTIONS############
 
 #####################################################################END FUNCTIONS###########################################################################
 
@@ -120,7 +142,7 @@ print (centroids)
 #get labels for given clusters
 labels = getlabels(datalist,centroids)
 
-plt.figure(1)
+plt.figure(10)
 #plot clusters
 symbols = ['o','s','v']
 colors = ['k','b','r']
