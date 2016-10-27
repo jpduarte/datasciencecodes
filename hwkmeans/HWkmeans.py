@@ -12,6 +12,60 @@ from sklearn.cluster import KMeans
 ##########################################################################FUNCTIONS##############################################################
 ##########################################################################FUNCTIONS#########
 #plot cluster
+def Kmeans_mina(data,k,tolerance_user = 0.01,guess_centroid_flag=0,initial_centroids=[], plot_flag=0):
+  #intial centroids
+  if(guess_centroid_flag == 0):
+    #random option
+    minX = np.amin(data[:,0])
+    maxX = np.amax(data[:,0])
+    minY = np.amin(data[:,1])
+    maxY = np.amax(data[:,1])  
+    centroids = np.random.rand(k,2)
+    centroids[:,0] = centroids[:,0]*(-minX+maxX)+minX
+    centroids[:,1] = centroids[:,1]*(-minY+maxY)+minY 
+  else:
+    centroids = initial_centroids
+
+  #clasify data using centroids
+  labels = getlabels(data,centroids)  
+  
+  if (plot_flag):
+    figurenumber=20
+    plt.figure(figurenumber)
+    figurenumber=figurenumber+1
+    #plot clusters
+    symbols = ['o','s','v']
+    colors = ['k','b','r']
+    markersize = 10
+    plotcluster(data,labels,symbols,colors,markersize)
+    plt.plot( centroids[:,0],centroids[:,1], '*',color='c',markersize=20)  
+  
+  centroidsold = np.zeros((k,2))
+
+  tolerance=10e10
+  j=0
+  while (tolerance>tolerance_user):
+    i=0
+    centroidsold[:] = centroids[:] 
+    while (i<k):
+      centroids[i,:] = np.mean(getcluster(data,labels,i), axis=0)
+      i=i+1
+    tolerance = (np.linalg.norm(centroids-centroidsold) )
+    labels = getlabels(data,centroids)   
+    j=j+1
+   
+  if (plot_flag):  
+    plt.figure(figurenumber)
+    figurenumber=figurenumber+1
+    #plot clusters
+    symbols = ['o','s','v']
+    colors = ['k','b','r']
+    markersize = 10
+    plotcluster(data,labels,symbols,colors,markersize)
+    plt.plot( centroids[:,0],centroids[:,1], '*',color='c',markersize=20)      
+  return centroids,labels,j
+   
+
 def plotcluster(data,labels,symbols,colors,sizemarker):
   i=0
 
@@ -65,10 +119,13 @@ def bisectkmeans(data,k):
   -> interate until we reach number of centroids wanted"""
  
   bisection_k = 2
+  total_iteration = 0
   #kmeans
-  kmeans = KMeans(n_clusters=bisection_k, random_state=0).fit(data)
+  centroids,labels,iterations = Kmeans_mina(data,bisection_k,0.01)
+  total_iteration = total_iteration+iterations
+  '''labels = KMeans(n_clusters=bisection_k, random_state=0).fit(data)
   centroids = kmeans.cluster_centers_
-  labels = kmeans.labels_
+  labels = kmeans.labels_'''
   figurenumber=1
   plt.figure(figurenumber)
   figurenumber=figurenumber+1
@@ -97,9 +154,11 @@ def bisectkmeans(data,k):
       centroids_out[bisection_k-2,:] = centroids[0,:] #safe centroid that is not being used in next iteration
     
     #Kmeans algorith
-    kmeans = KMeans(n_clusters=bisection_k, random_state=0).fit(data)
+    centroids,labels,iterations = Kmeans_mina(data,bisection_k,0.01)
+    total_iteration = total_iteration+iterations
+    '''kmeans = KMeans(n_clusters=bisection_k, random_state=0).fit(data)
     centroids = kmeans.cluster_centers_
-    labels = kmeans.labels_
+    labels = kmeans.labels_'''
     plt.figure(figurenumber)
     figurenumber=figurenumber+1
     #plot clusters
@@ -117,7 +176,7 @@ def bisectkmeans(data,k):
       centroids_out[bisection_k-2,:] = centroids[0,:]
       centroids_out[bisection_k-1,:] = centroids[1,:]
 
-  return centroids_out#,labels,inertia,SSEs  
+  return centroids_out,total_iteration#,labels,inertia,SSEs  
 
 #####################################################################END FUNCTIONS############
 
@@ -134,7 +193,8 @@ datalist = np.loadtxt(pathandfile,skiprows = 1,delimiter=',')
 
 
 #bisection method
-centroids= bisectkmeans(datalist,k)
+centroids,total_iteration= bisectkmeans(datalist,k)
+print ("Total Iterations: "+str(total_iteration))
 
 print("centroids:")
 print (centroids)
@@ -155,5 +215,17 @@ plt.plot( centroids[:,0],centroids[:,1], 's',color='c',markersize=15)
 ax = plt.gca()
 ax.set_xlabel("X")
 ax.set_ylabel("Y")
+
+#call Kmeans with initial guess from bysection
+centroids,labels,total_iteration=Kmeans_mina(datalist,k,tolerance_user = 0.001,guess_centroid_flag=1,initial_centroids=centroids, plot_flag=1)
+print ("Total Iterations: "+str(total_iteration))
+
+#use Kmeans from library
+kmeans = KMeans(n_clusters=k, random_state=0).fit(datalist)
+centroids = kmeans.cluster_centers_
+labels = kmeans.labels_
+plt.figure(11)
+plotcluster(datalist,labels,symbols,colors,markersize)
+plt.plot( centroids[:,0],centroids[:,1], 's',color='c',markersize=15)
 
 plt.show()
