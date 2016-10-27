@@ -1,0 +1,52 @@
+#Mina HW
+import matplotlib.pyplot as plt
+from numpy import loadtxt
+import numpy as np
+
+from numpy.matlib import repmat
+from scipy.misc import factorial
+from scipy import sparse
+from scipy.sparse import lil_matrix
+from scipy.sparse.linalg import spsolve
+from numpy.linalg import solve, norm
+
+import scipy.io
+import scipy.cluster
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+pathandfile = '/home/juan/mina/hwkmeans/TwoDimensionalContinuousData.csv'
+
+
+######################### Functions ######################
+def _make_training_set(data):
+    """ Separate data set into 2 sets. 
+    1/6 of the dataset is training set and the rest is test set
+    Parameter:
+        data: waveform data (width = number of samples per spike)
+    """
+    n = data.shape[0]
+    idx_training = np.random.choice(n, n//6, replace=False)
+    training_set = data[idx_training]
+    test_set = [data[i] for i in range(n) if n not in idx_training]
+    return training_set, test_set
+
+
+########################################################
+
+target = open( pathandfile, 'r')
+datalist = loadtxt(pathandfile,skiprows = 1,delimiter=',')
+#print(datalist)
+#print(len(datalist))
+#print(type(datalist))
+
+loaddata = scipy.io.loadmat('spike_waveforms').items()
+print((loaddata))
+print(len(loaddata))
+print(type(loaddata))
+
+
+presorted = {k: v for k, v in scipy.io.loadmat('spike_waveforms').items() if k in ('sig118a_wf', 'sig118b_wf', 'sig118c_wf')}
+presorted = [presorted['sig118a_wf'], presorted['sig118b_wf'], presorted['sig118c_wf']]
+
+two_neurons_training, two_neurons_test = _make_training_set(np.concatenate(presorted[1:]))
